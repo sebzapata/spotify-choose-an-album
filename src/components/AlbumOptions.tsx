@@ -68,11 +68,7 @@ const AlbumOptions = () => {
   }, [artistsAlbums, chosenAlbums]);
 
   useEffect(() => {
-    if (
-      !allFollowedArtistsData?.isLoading &&
-      allFollowedArtistsData &&
-      chosenArtists.length !== 6
-    ) {
+    if (!isLoading && allFollowedArtistsData && chosenArtists.length !== 6) {
       const randomNumber = Math.floor(
         Math.random() * allFollowedArtistsData.artists.items.length
       );

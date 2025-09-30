@@ -68,7 +68,9 @@ export const useSpotifyAuth = () => {
         scope: "user-follow-read",
         code_challenge_method: "S256",
         code_challenge: codeChallenge,
-        redirect_uri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
+        redirect_uri: import.meta.env.PROD
+          ? import.meta.env.VITE_SPOTIFY_REDIRECT_URI_PROD
+          : import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
       }
     );
   };
@@ -86,7 +88,9 @@ export const useSpotifyAuth = () => {
           client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
           grant_type: "authorization_code",
           code,
-          redirect_uri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
+          redirect_uri: import.meta.env.PROD
+            ? import.meta.env.VITE_SPOTIFY_REDIRECT_URI_PROD
+            : import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
           code_verifier: codeVerifier,
         }),
       });
