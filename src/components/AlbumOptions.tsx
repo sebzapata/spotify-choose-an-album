@@ -4,6 +4,7 @@ import "../App.css";
 import { useSpotifyAuth } from "../hooks/useSpotifyAuth";
 import { getArtistsAlbums } from "../service/getArtistAlbums";
 import { getAllUsersFollowedArtistsPaginated } from "../service/getUsersFollowedArtists";
+import LoadingSpinner from "./LoadingSpinner";
 
 const AlbumOptions = () => {
   const [chosenArtists, setChosenArtists] = useState<string[]>([]);
@@ -81,20 +82,18 @@ const AlbumOptions = () => {
   }, [chosenArtists, allFollowedArtistsData]);
 
   if (isLoading) {
-    return <p>Loading</p>;
+    return <LoadingSpinner />;
   }
 
   if (!allFollowedArtistsData) return null;
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 md:grid-cols-2 gap-6 max-w-6xl">
+    <div className="grid grid-cols-1 xl:grid-cols-3 md:grid-cols-2 gap-6">
       {chosenAlbums.map((album) => (
-        <div className="flex gap-4 items-center">
-          <div key={album.url} className="flex gap-4 items-center">
-            <a href={album.url}>
-              <img className="w-full" src={album.image} />
-            </a>
-          </div>
+        <div key={album.url}>
+          <a href={album.url}>
+            <img className="w-full" src={album.image} />
+          </a>
         </div>
       ))}
     </div>
