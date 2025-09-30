@@ -74,10 +74,16 @@ const AlbumOptions = () => {
         Math.random() * allFollowedArtistsData.artists.items.length
       );
 
-      setChosenArtists((prev) => [
-        ...prev,
-        allFollowedArtistsData.artists.items[randomNumber].id,
-      ]);
+      const randomArtistId =
+        allFollowedArtistsData.artists.items[randomNumber].id;
+
+      setChosenArtists((prev) => {
+        if (prev.includes(randomArtistId)) {
+          return [...prev];
+        }
+
+        return [...prev, randomArtistId];
+      });
     }
   }, [chosenArtists, allFollowedArtistsData]);
 
