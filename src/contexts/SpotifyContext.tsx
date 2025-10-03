@@ -1,13 +1,13 @@
 import { createContext, useState, useContext, ReactNode } from "react";
 
 type SpotifyContextType = {
-  selectedPlaylistId: string;
-  setSelectedPlaylistId: (id: string) => void;
+  selectedMode: "History" | "Followed" | undefined;
+  setSelectedMode: (id?: "History" | "Followed") => void;
 };
 
 export const defaultSpotifyContext: SpotifyContextType = {
-  selectedPlaylistId: "",
-  setSelectedPlaylistId: () => {},
+  selectedMode: undefined,
+  setSelectedMode: () => {},
 };
 
 const SpotifyContext = createContext<SpotifyContextType>(defaultSpotifyContext);
@@ -17,11 +17,11 @@ type SpotifyProviderProps = {
 };
 
 export const SpotifyProvider = ({ children }: SpotifyProviderProps) => {
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState("");
+  const [selectedMode, setSelectedMode] = useState<"History" | "Followed">();
 
   const contextValue: SpotifyContextType = {
-    selectedPlaylistId,
-    setSelectedPlaylistId,
+    selectedMode,
+    setSelectedMode,
   };
 
   return (
