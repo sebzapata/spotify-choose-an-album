@@ -3,10 +3,14 @@ import AlbumOptions from "./components/AlbumOptions";
 import LoadingSpinner from "./components/LoadingSpinner";
 import LoginScreen from "./components/LoginScreen";
 import LogoutButton from "./components/LogoutButton";
+import ModeSelection from "./components/ModeSelection/ModeSelection";
+import { useSpotify } from "./contexts/SpotifyContext";
 import { useSpotifyAuth } from "./hooks/useSpotifyAuth";
 
 function App() {
   const { isLoggedIn, loading, login, logout } = useSpotifyAuth();
+
+  const { selectedMode } = useSpotify();
 
   if (loading) {
     return (
@@ -18,6 +22,10 @@ function App() {
 
   if (!isLoggedIn) {
     return <LoginScreen loading={loading} login={login} />;
+  }
+
+  if (!selectedMode) {
+    return <ModeSelection />;
   }
 
   return (

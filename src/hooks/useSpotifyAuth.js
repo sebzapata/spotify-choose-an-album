@@ -65,7 +65,7 @@ export const useSpotifyAuth = () => {
       {
         response_type: "code",
         client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
-        scope: "user-follow-read",
+        scope: "user-follow-read user-top-read",
         code_challenge_method: "S256",
         code_challenge: codeChallenge,
         redirect_uri: import.meta.env.PROD
