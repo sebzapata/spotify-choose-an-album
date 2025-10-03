@@ -10,24 +10,23 @@ import { useSpotify } from "../contexts/SpotifyContext";
 
 const AlbumOptions = () => {
   const [chosenArtists, setChosenArtists] = useState<string[]>([]);
-  const [chosenAlbums, setChosenAlbums] = useState<
-    { url: string; image: string }[]
-  >([]);
-  const [isLoadingAllPages, setIsLoadingAllPages] = useState(true);
+  const [isLoadingAllTopArtistsPages, setIsLoadingAllPages] = useState(false);
 
   const { accessToken } = useSpotifyAuth();
   const { selectedMode } = useSpotify();
 
   const {
-    data: usersTopArtists,
+    data: topArtistsData,
     isLoading: isTopArtistsLoading,
-    fetchNextPage: fetchNextArtistsPage,
-    isFetching: isFetchingArtists,
-    hasNextPage: hasNextArtistsPage,
+    fetchNextPage: fetchNextTopArtistsPage,
+    isFetching: isFetchingTopArtists,
+    hasNextPage: hasNextTopArtistsPage,
   } = useInfiniteQuery({
     queryKey: ["getUsersTopArtists", accessToken],
     queryFn: ({ pageParam = 1 }) => {
       if (accessToken) {
+        setIsLoadingAllPages(true);
+
         return getUsersTopItems(
           "artists",
           "long_term",
@@ -41,78 +40,37 @@ const AlbumOptions = () => {
       if (lastPage?.items?.length === 50) {
         return allPages.length + 1;
       }
+
       return undefined; // No more pages
     },
     initialPageParam: 1,
-    enabled: !!accessToken && selectedMode === "History", // Only run when we have access token
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    enabled: !!accessToken && selectedMode === "History",
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
-    if (!usersTopArtists || isFetchingArtists || !hasNextArtistsPage) return;
+    if (isFetchingTopArtists || !hasNextTopArtistsPage) {
+      return;
+    }
 
-    fetchNextArtistsPage();
+    fetchNextTopArtistsPage();
   }, [
-    usersTopArtists,
-    isFetchingArtists,
-    hasNextArtistsPage,
-    fetchNextArtistsPage,
+    topArtistsData,
+    isFetchingTopArtists,
+    hasNextTopArtistsPage,
+    fetchNextTopArtistsPage,
   ]);
 
   useEffect(() => {
-    if (!hasNextArtistsPage && !isFetchingArtists) {
+    if (!hasNextTopArtistsPage && !isFetchingTopArtists) {
       setIsLoadingAllPages(false);
-    } else if (isTopArtistsLoading || isFetchingArtists || hasNextArtistsPage) {
-      setIsLoadingAllPages(true);
     }
   }, [
-    usersTopArtists,
-    hasNextArtistsPage,
-    isFetchingArtists,
+    topArtistsData,
+    hasNextTopArtistsPage,
+    isFetchingTopArtists,
     isTopArtistsLoading,
   ]);
-
-  // const {
-  //   data: usersTopTracks,
-  //   isLoading: isTopTracksLoading,
-  //   fetchNextPage: fetchNextTracksPage,
-  //   isFetching: isFetchingTracks,
-  //   hasNextPage: hasNextTracksPage,
-  // } = useInfiniteQuery({
-  //   queryKey: ["getUsersTopTracks", accessToken],
-  //   queryFn: ({ pageParam = 1 }) => {
-  //     if (accessToken) {
-  //       return getUsersTopItems(
-  //         "tracks",
-  //         "long_term",
-  //         accessToken,
-  //         (pageParam - 1) * 50
-  //       );
-  //     }
-  //   },
-  //   getNextPageParam: (lastPage, allPages) => {
-  //     // Only return next page if current page has 100 items (full page)
-  //     if (lastPage?.items?.length === 50) {
-  //       return allPages.length + 1;
-  //     }
-  //     return undefined; // No more pages
-  //   },
-  //   initialPageParam: 1,
-  //   enabled: !!accessToken, // Only run when we have access token
-  //   refetchOnWindowFocus: false, // Don't refetch when window regains focus
-  // });
-
-  // useEffect(() => {
-  //   if (!usersTopTracks || isFetchingTracks || !hasNextTracksPage) return;
-
-  //   // Auto-fetch next page if we have more data available
-  //   fetchNextTracksPage();
-  // }, [
-  //   usersTopTracks,
-  //   isFetchingTracks,
-  //   hasNextTracksPage,
-  //   fetchNextTracksPage,
-  // ]);
 
   const {
     data: allFollowedArtistsData,
@@ -127,49 +85,6 @@ const AlbumOptions = () => {
     enabled: !!accessToken && selectedMode === "Followed",
     refetchOnWindowFocus: false,
   });
-
-  const { data: artistsAlbums } = useQuery({
-    queryKey: ["getArtistsAlbums", accessToken, chosenArtists],
-    queryFn: async () => {
-      if (accessToken) {
-        const allArtistsAllAlbumsPromises = chosenArtists.map((artistId) =>
-          getArtistsAlbums(artistId, accessToken, 0)
-        );
-
-        const allArtistsAllAlbums = await Promise.all(
-          allArtistsAllAlbumsPromises
-        );
-
-        const allAlbums = allArtistsAllAlbums.map(
-          (artistsAlbums) => artistsAlbums.items
-        );
-
-        return allAlbums;
-      }
-    },
-    enabled: !!accessToken && chosenArtists.length === 6,
-    refetchOnWindowFocus: false,
-  });
-
-  useEffect(() => {
-    if (artistsAlbums && chosenAlbums.length !== 6) {
-      artistsAlbums.forEach((artistAlbums) => {
-        const randomNumber = Math.floor(Math.random() * artistAlbums.length);
-
-        const randomAlbum = artistAlbums[randomNumber];
-
-        setChosenAlbums((prev) => [
-          ...prev,
-          {
-            name: randomAlbum.name,
-            artist: randomAlbum.artists[0].name,
-            url: randomAlbum.uri,
-            image: randomAlbum.images[0].url,
-          },
-        ]);
-      });
-    }
-  }, [artistsAlbums, chosenAlbums]);
 
   useEffect(() => {
     if (selectedMode === "Followed") {
@@ -194,63 +109,85 @@ const AlbumOptions = () => {
         });
       }
     } else {
-      console.log("in here");
-      console.log("isloadingALlpages", isLoadingAllPages);
-      // if (
-      //   !isLoadingAllPages &&
-      //   !isTopArtistsLoading &&
-      //   usersTopArtists &&
-      //   chosenArtists.length !== 6
-      // ) {
-      //   const flattenedArtistsHistory = usersTopArtists.pages.flatMap(
-      //     (page) => page?.items
-      //   );
+      if (
+        !isLoadingAllTopArtistsPages &&
+        !isTopArtistsLoading &&
+        topArtistsData &&
+        chosenArtists.length !== 6
+      ) {
+        const flattenedArtistsHistory = topArtistsData.pages.flatMap(
+          (page) => page?.items
+        );
 
-      //   console.log("flattened", flattenedArtistsHistory);
-      //   const randomNumber = Math.floor(
-      //     Math.random() * flattenedArtistsHistory.length
-      //   );
+        const randomNumber = Math.floor(
+          Math.random() * flattenedArtistsHistory.length
+        );
+        const randomArtistId = flattenedArtistsHistory[randomNumber]?.id;
 
-      //   const randomArtistId = flattenedArtistsHistory.map(
-      //     (artist) => artist?.id
-      //   );
+        setChosenArtists((prev) => {
+          if (randomArtistId) {
+            if (prev.includes(randomArtistId)) {
+              return [...prev];
+            }
+            return [...prev, randomArtistId];
+          }
 
-      //   setChosenArtists((prev) => {
-      //     if (prev.includes(randomArtistId)) {
-      //       return [...prev];
-      //     }
-
-      //     return [...prev, randomArtistId];
-      //   });
-      // }
+          return [...prev];
+        });
+      }
     }
-  }, [chosenArtists, allFollowedArtistsData]);
+  }, [
+    chosenArtists,
+    allFollowedArtistsData,
+    topArtistsData,
+    isLoadingAllTopArtistsPages,
+  ]);
 
-  console.log("chosen albums", chosenAlbums);
+  const { data: artistsAlbums, isLoading: isArtistsAlbumsLoading } = useQuery({
+    queryKey: ["getArtistsAlbums", accessToken, chosenArtists],
+    queryFn: async () => {
+      if (accessToken) {
+        const allArtistsAllAlbumsPromises = chosenArtists.map((artistId) =>
+          getArtistsAlbums(artistId, accessToken, 0)
+        );
 
-  if (isLoadingAllFollowedArtists || isLoadingAllPages) {
+        const allArtistsAllAlbums = (
+          await Promise.all(allArtistsAllAlbumsPromises)
+        ).map((artistsAlbums) => artistsAlbums.items);
+
+        return allArtistsAllAlbums.map((artistAlbums) => {
+          const randomNumber = Math.floor(Math.random() * artistAlbums.length);
+
+          const randomAlbum = artistAlbums[randomNumber];
+
+          return {
+            url: randomAlbum.uri,
+            image: randomAlbum.images[0].url,
+          };
+        });
+      }
+    },
+    enabled: !!accessToken && chosenArtists.length === 6,
+    refetchOnWindowFocus: false,
+  });
+
+  if (
+    isLoadingAllFollowedArtists ||
+    isLoadingAllTopArtistsPages ||
+    isArtistsAlbumsLoading
+  ) {
     return <LoadingSpinner />;
   }
 
-  if (
-    (selectedMode === "Followed" && !allFollowedArtistsData) ||
-    (selectedMode === "History" && !usersTopArtists)
-  ) {
-    return null;
-  }
-
-  // const topTrackArtists = usersTopTracks.pages.flatMap((page) =>
-  //   page?.items.flatMap((item) => item.artists[0].name)
-  // );
-
-  // const uniqueTopTrackArtists = [...new Set(topTrackArtists)];
-
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 md:grid-cols-2 gap-6">
-      {chosenAlbums.map((album) => (
+    <div className="grid grid-cols-1 xl:grid-cols-3 md:grid-cols-2 gap-6 items-center">
+      {artistsAlbums?.map((album) => (
         <div key={album.url}>
           <a href={album.url}>
-            <img className="w-full" src={album.image} />
+            <img
+              className="w-full h-auto aspect-square object-cover xl:max-h-[40vh]"
+              src={album.image}
+            />
           </a>
         </div>
       ))}
