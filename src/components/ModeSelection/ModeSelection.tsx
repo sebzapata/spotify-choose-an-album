@@ -6,6 +6,13 @@ const ModeSelection = () => {
   const { setSelectedMode } = useSpotify();
 
   return (
+    <div className="flex flex-row sm:flex-row gap-12 max-h-screen sm:max-h-none">
+      <div className="h-[50svh] bg-amber-200">text</div>
+      <div className="h-[50dvh] bg-amber-600">text</div>
+      <div className="h-[50lvh] bg-amber-900">text</div>
+    </div>
+  );
+  return (
     <div className="flex flex-col sm:flex-row gap-12 max-h-screen sm:max-h-none">
       <button
         onClick={() => setSelectedMode("History")}
