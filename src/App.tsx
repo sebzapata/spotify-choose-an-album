@@ -12,6 +12,8 @@ function App() {
 
   const { selectedMode } = useSpotify();
 
+  return <ModeSelection />;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center">
